@@ -3,16 +3,17 @@
 Distributed map-matching and route reconstruction for UE24CS352A (Machine Learning), PES University. Noisy GPS points go in; a connected road route comes out. A classifier scores candidate road segments and an HMM with Viterbi decoding assembles the route. The API runs on one laptop and the evaluator UI on another.
 
 ## Status (18 Nov 2026)
-Data audit and the front half of the pipeline are done: loader, label alignment, candidates, features and a nearest-arc-with-heading baseline (86.0% Top-1 on student-test). **No trained model, HMM, API or UI yet.** Who does what next is in [docs/06_work_split.md](docs/06_work_split.md).
+Data audit, pipeline, three trained models and the HMM decoder are done. On student-test, Top-1 goes from 86.0% (rule baseline) to 89.1% (boosting) to 92.8% (boosting + HMM). Bayesian optimisation is running. **No API or UI yet**, and the HMM is not wired into `predict_trip`. Results are in [docs/08_models_and_hmm.md](docs/08_models_and_hmm.md); who does what next is in [docs/06_work_split.md](docs/06_work_split.md).
 
 ## Start here (read in order)
 1. [docs/01_task_summary.md](docs/01_task_summary.md): what the organisers require, rules and deliverables
 2. [docs/02_data_audit.md](docs/02_data_audit.md): what the real data looks like, and what it changes
 3. [docs/03_plan.md](docs/03_plan.md): proposed technical design and table shapes
 4. [docs/06_work_split.md](docs/06_work_split.md): who owns what (Santosh, Koushik, Sharath)
-5. [docs/07_pipeline.md](docs/07_pipeline.md): the code built so far, how to run it, and its results
-6. [docs/04_todo.md](docs/04_todo.md): task checklist with owners
-7. [docs/05_open_questions.md](docs/05_open_questions.md): questions for the organisers
+5. [docs/07_pipeline.md](docs/07_pipeline.md): the data pipeline, how to run it, and its results
+6. [docs/08_models_and_hmm.md](docs/08_models_and_hmm.md): model comparison and HMM results
+7. [docs/04_todo.md](docs/04_todo.md): task checklist with owners
+8. [docs/05_open_questions.md](docs/05_open_questions.md): questions for the organisers
 
 ## Set up
 Python 3.12.
