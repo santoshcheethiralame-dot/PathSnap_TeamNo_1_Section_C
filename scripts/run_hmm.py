@@ -22,7 +22,7 @@ from pathsnap.hmm import build_graph, build_steps, decode, group_candidates  # n
 from pathsnap.segments import segment_ids  # noqa: E402
 from pathsnap.trips import load_trip  # noqa: E402
 
-GRID = dict(lam=[0.5, 1.0, 2.0], beta=[2.0, 3.0, 5.0, 7.0, 10.0, 20.0], gamma=[0.0, 0.1, 0.3], penalty=[20.0])
+GRID = dict(lam=[0.5, 1.0, 2.0, 3.0, 5.0], beta=[1.0, 2.0, 3.0, 5.0, 10.0], gamma=[0.0, 0.1], penalty=[20.0])
 DATA = {}
 
 

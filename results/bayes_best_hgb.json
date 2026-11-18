@@ -1,0 +1,24 @@
+{
+  "config": {
+    "learning_rate": 0.024017432847009614,
+    "max_leaf_nodes": 103,
+    "min_samples_leaf": 19,
+    "l2_regularization": 0.017263869042304814,
+    "max_bins": 255,
+    "max_iter": 264
+  },
+  "cv_top1": 0.8948285167933921,
+  "trial": 35,
+  "n_trials": 40,
+  "objective": "mean observation-level Top-1 over 5 trip-grouped CV folds",
+  "space": {
+    "learning_rate": "loguniform 0.02 - 0.3",
+    "max_leaf_nodes": "int 8 - 128 (log)",
+    "min_samples_leaf": "int 10 - 400 (log)",
+    "l2_regularization": "loguniform 1e-4 - 10",
+    "max_bins": "categorical 64, 128, 255",
+    "max_iter": "int 150 - 500"
+  },
+  "total_seconds": 2014.6,
+  "seed": 0
+}

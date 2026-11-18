@@ -17,18 +17,18 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 - [x] B3a. Random Forest, HistGradientBoosting, MLP: student-test Top-1 88.4% / 89.1% / 88.6% (`results/model_runs.csv`) · S
 - [x] B3b. Logistic Regression and Gaussian NB trained (added by S so the five-model set exists for Review 1; results in `results/model_runs.csv`). **K** still owns the report write-up for these two: the nine questions in report §3.2
 - [x] B4. Comparison plots drafted by `scripts/make_model_plots.py` into `report/figures/models/`. **K** reviews and restyles them for the report
-- [ ] B5. Final model choice with written reasoning · **S**
-- [ ] B6. Optuna Bayesian optimisation, trial CSV, tuned vs untuned · **S**
-- [ ] B7. Save final model, scaler and config in `models/` · **S**
+- [x] B5. Final model choice with written reasoning: tuned HGB + HMM (`08_models_and_hmm.md`). The student must still write their own justification in the report · S
+- [x] B6. Optuna Bayesian optimisation: 40 trials, CV Top-1 89.2% to 89.5%, student-test unchanged (`results/bayes_*`) · S
+- [x] B7. Final model and config saved in `models/` (model.joblib 1.4 MB, config.json; no scaler needed for trees) · S
 
 ## Stream C · HMM and Viterbi (Santosh)
 - [x] C1. Per-trip network graph, sparse Dijkstra with cutoff (`hmm.py`)
 - [x] C2. Emissions, route-distance transitions, gap reset
 - [x] C3. Log-space Viterbi. Connecting-arc route fill for the UI still to do
-- [x] C4. Decoder parameters tuned on train out-of-fold probabilities (`results/hmm_grid_hgb.csv`)
-- [ ] C5. Classifier-only vs classifier+HMM: done on student-test (89.1% to 92.8% Top-1, 74.5% to 90.9% continuity). Failure-case analysis still to do
+- [x] C4. Decoder parameters tuned on train out-of-fold probabilities (`results/hmm_grid_*.csv`)
+- [ ] C5. Classifier-only vs classifier+HMM: done on student-test (final model 89.1% to 93.2% Top-1, 75.2% to 90.4% continuity). Failure-case analysis still to do
 - [x] C6. Metrics module (`metrics.py`). Route overlap metric not done
-- [ ] C7. Put classifier+HMM into `predict_trip`
+- [x] C7. Classifier + HMM wired into `predict_trip`; end-to-end check reproduces 93.15% (`scripts/check_predict.py`). Sharath can now build the API on it
 
 ## Stream D · API, UI, maps, report
 - [ ] D1. FastAPI app: `GET /trips`, `POST /predict`, request logging · **Sh**
