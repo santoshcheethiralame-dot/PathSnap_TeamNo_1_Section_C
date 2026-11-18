@@ -1,0 +1,29 @@
+PathSnap - Data Quality Log
+============================
+
+Total trips: 90
+
+Partition: student_test
+Number of trips: 10
+Total GPS points: 19160
+Missing values: 0
+Median GPS points per trip: 1420.0
+Mean of per-trip median GPS-to-route distance: 5.04 metres
+
+Partition: train
+Number of trips: 80
+Total GPS points: 208417
+Missing values: 0
+Median GPS points per trip: 1529.0
+Mean of per-trip median GPS-to-route distance: 8.08 metres
+
+Observations
+------------
+Training trips 33 and 54 were identified by the project pipeline as defective and quarantined.
+GPS time gaps are not always exactly one second.
+Student-test and training data must be analysed separately.
+The reference route is used for distance analysis only.
+Time-gap and route-distance histograms display the central 99% of observations.
+Observations outside the displayed histogram range are excluded only from visualization, not from the dataset.
+
+Note: These are development partitions, not evaluator data.
