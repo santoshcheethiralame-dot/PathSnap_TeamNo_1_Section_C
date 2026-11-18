@@ -13,7 +13,7 @@ import numpy as np
 
 from .baseline import predict_top1
 from .candidates import build_candidates
-from .features import FEATURE_COLUMNS, build_features
+from .features import build_features
 from .hmm import build_graph, build_steps, decode, group_candidates, route_nodes
 from .segments import segment_ids
 from .trips import load_trip
@@ -49,7 +49,7 @@ def predict_trip(trip_dir, model_dir=MODEL_DIR):
             arc[chosen.point_idx.to_numpy()] = chosen.arc_id.to_numpy()
             method = "nearest-arc + heading rule"
         else:                                             # classifier + HMM
-            feats = feats.assign(prob=est.predict_proba(feats[FEATURE_COLUMNS].to_numpy(np.float32))[:, 1])
+            feats = feats.assign(prob=est.predict_proba(feats[cfg["features"]].to_numpy(np.float32))[:, 1])
             cands = group_candidates(feats)
             graph = build_graph(trip)
             arcs, _ = decode(cands, build_steps(trip, graph, cands, seg), **cfg["hmm"])
