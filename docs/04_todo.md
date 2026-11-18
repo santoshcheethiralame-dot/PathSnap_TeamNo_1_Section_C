@@ -13,9 +13,9 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 ## Stream B · Features and models
 - [x] B1. Feature builder (`features.py`) · S. Scaler fitting still to do inside the harness
 - [x] B2. Nearest-arc-with-heading baseline: 86.0% student-test Top-1 (`07_pipeline.md`) · S
-- [ ] B3. Training harness: group-CV by trip, per-trip weighting, logged configs/seeds/times · **S**
-- [ ] B3a. Random Forest, HistGradientBoosting/LightGBM, MLP · **S**
-- [ ] B3b. Logistic Regression and Gaussian NB (after B3) · **K**
+- [x] B3. Training harness (`scripts/train_models.py`, `src/pathsnap/modeling.py`): group-CV by trip, 1,000-point cap per trip, logged configs/seeds/times · S
+- [x] B3a. Random Forest, HistGradientBoosting, MLP: student-test Top-1 88.4% / 89.1% / 88.6% (`results/model_runs.csv`) · S
+- [ ] B3b. Logistic Regression and Gaussian NB: **unblocked now**. Add `lr` and `gnb` entries to `src/pathsnap/models.py`, then run `python scripts/train_models.py data/raw data/processed results/dataset_build_summary.csv results data/probs lr gnb` · **K**
 - [ ] B4. Comparison table and plots (CV macro F1, student-test Top-1 and macro F1, log loss) · **K**, table content from **S**
 - [ ] B5. Final model choice with written reasoning · **S**
 - [ ] B6. Optuna Bayesian optimisation, trial CSV, tuned vs untuned · **S**
