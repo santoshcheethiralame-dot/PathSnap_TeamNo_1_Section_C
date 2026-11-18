@@ -34,6 +34,18 @@ def score_trip(trip_dir, prediction=None):
 
     predicted_arc = np.asarray(prediction["point_arc"])
 
+    if trip.route is None:
+        # No reference file for this trip: report the size only, never fail the request.
+        return {
+            "scored": False,
+            "n_points": int(trip.n_points),
+            "n_labelled": 0,
+            "top1_accuracy": None,
+            "prediction_coverage": float((predicted_arc >= 0).mean()),
+            "route_continuity": None,
+            "predicted_route_arcs": int(len(prediction["route_arcs"]))
+        }
+
     if len(predicted_arc) != trip.n_points:
         raise ValueError("Prediction and reference trip lengths do not match.")
 
@@ -65,6 +77,7 @@ def score_trip(trip_dir, prediction=None):
         continuity = None
 
     return {
+        "scored": True,
         "n_points": int(trip.n_points),
         "n_labelled": n_labelled,
         "top1_accuracy": top1_accuracy,

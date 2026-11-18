@@ -1,6 +1,8 @@
-import sys
 import logging
+import os
+import sys
 import time
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -8,11 +10,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = PROJECT_ROOT.parent / "Student folder"
+# Folder whose sub-folders are the trips to serve, one folder per trip with the
+# four files inside. Set PATHSNAP_TRIPS_DIR to point at the evaluator folder on
+# the day; the default is the student-test folder next to the repository.
+TRIPS_DIR = Path(os.environ.get("PATHSNAP_TRIPS_DIR") or PROJECT_ROOT.parent / "Student folder" / "student_test")
 
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from pathsnap.trips import list_trips
 from pathsnap.predict import predict_trip
 from api.scoring import score_trip
 
@@ -44,7 +48,14 @@ if not logger.handlers:
 logger.propagate = False
 
 
+@asynccontextmanager
+async def lifespan(_app):
+    logger.info("Serving %d trips from %s", len(trip_ids()), TRIPS_DIR)
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="PathSnap API",
     description="GPS Route Reconstruction and Map Matching",
     version="1.0"
@@ -90,20 +101,25 @@ class PredictionRequest(BaseModel):
     trip_id: str
 
 
+def trip_ids():
+    """Trip folders that hold a track file, sorted by id."""
+    if not TRIPS_DIR.is_dir():
+        return []
+    return sorted(d.name for d in TRIPS_DIR.iterdir() if d.is_dir() and (d / f"{d.name}.track").is_file())
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "trips_available": len(trip_ids())}
 
 
 @app.get("/trips")
 def get_trips():
     try:
-        trip_dirs = list_trips(DATA_ROOT, "student_test")
-        trip_ids = [Path(path).name for path in trip_dirs]
-
+        ids = trip_ids()
         return {
-            "count": len(trip_ids),
-            "trips": trip_ids
+            "count": len(ids),
+            "trips": ids
         }
 
     except Exception:
@@ -124,15 +140,16 @@ def predict(request: PredictionRequest):
             detail="Invalid trip ID."
         )
 
-    trip_dir = DATA_ROOT / "student_test" / trip_id
+    trip_dir = TRIPS_DIR / trip_id
 
-    if not trip_dir.is_dir():
+    if not (trip_dir / f"{trip_id}.track").is_file():
         raise HTTPException(
             status_code=404,
             detail="Trip not found."
         )
 
     try:
+        started = time.perf_counter()
         # Run prediction once
         result = predict_trip(trip_dir)
 
@@ -142,6 +159,12 @@ def predict(request: PredictionRequest):
         # Add numerical metrics
         result.update(scores)
 
+        logger.info(
+            "predict trip=%s method=%s points=%d route_arcs=%d top1=%s continuity=%s scored=%s time=%.2fs",
+            trip_id, result["method"], result["n_points"], len(result["route_arcs"]),
+            _fmt(scores["top1_accuracy"]), _fmt(scores["route_continuity"]), scores["scored"],
+            time.perf_counter() - started,
+        )
         return result
 
     except Exception:
@@ -150,3 +173,7 @@ def predict(request: PredictionRequest):
             status_code=500,
             detail="Prediction or scoring failed. Check the backend terminal."
         )
+
+
+def _fmt(value):
+    return "n/a" if value is None else f"{value:.4f}"

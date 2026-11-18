@@ -13,3 +13,4 @@ venv/
 Thumbs.db
 .env
 *.pkl
+api/logs/

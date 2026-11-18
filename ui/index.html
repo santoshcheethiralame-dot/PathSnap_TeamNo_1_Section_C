@@ -247,6 +247,13 @@
 <script>
     const map = L.map('map', { maxZoom: 19 }).setView([12.9716, 77.5946], 12);
 
+    // Opened from the UI laptop, the API runs on the other laptop: type its address
+    // (for example http://192.168.1.20:8000). Served from the API laptop itself,
+    // the page host is already right.
+    if (location.hostname) {
+        document.getElementById('apiUrl').value = 'http://' + location.hostname + ':8000';
+    }
+
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri', maxZoom: 19
     }).addTo(map);
@@ -309,7 +316,7 @@
             setStatus(trips.length + ' trips loaded successfully.');
 
         } catch (error) {
-            setStatus('Could not connect to API. Backend setup is still pending.');
+            setStatus('Could not connect to the API. Check the address, that the API is running and that the firewall allows port 8000.');
         }
     }
 

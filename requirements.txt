@@ -10,5 +10,8 @@ pytest==9.2.0
 optuna==5.1.0
 matplotlib==3.11.2
 
-# Planned, not yet used or tested here. Pin when you add them:
-#   fastapi, uvicorn, folium
+# API and maps
+fastapi==0.163.2
+uvicorn==0.54.0
+httpx==0.28.1        # only for the API tests
+folium==1.0.0
