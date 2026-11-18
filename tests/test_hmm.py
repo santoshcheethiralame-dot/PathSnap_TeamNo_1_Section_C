@@ -43,6 +43,14 @@ def test_viterbi_repairs_one_noisy_direction_flip():
     assert (chosen < 4).all()
 
 
+def test_route_nodes_fills_skipped_arcs():
+    from pathsnap.hmm import route_nodes
+    trip, _, _ = setup([[3.0, -2.0], [90.0, -2.0]], [0.0, 1.0], lambda i, a: 0.5)
+    # arcs 0 and 3 are not adjacent; the nodes of arcs 1 and 2 must be filled in
+    nodes = route_nodes(trip, build_graph(trip), np.array([0, 0, 3, -1]))
+    assert list(nodes) == [0, 1, 2, 3, 4]
+
+
 def test_chain_restarts_at_time_gap():
     xy = [[3.0 + 3 * i, -2.0] for i in range(10)] + [[3.0 + 3 * i, -2.0] for i in range(10, 20)]
     t = list(np.arange(10.0)) + list(1000.0 + np.arange(10.0))
