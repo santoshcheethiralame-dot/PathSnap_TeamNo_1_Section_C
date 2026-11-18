@@ -7,6 +7,8 @@ shapely==2.2.0
 scikit-learn==1.9.1
 pyarrow==26.0.1
 pytest==9.2.0
+optuna==5.1.0
+matplotlib==3.11.2
 
 # Planned, not yet used or tested here. Pin when you add them:
-#   optuna, fastapi, uvicorn, folium, matplotlib, lightgbm (or xgboost)
+#   fastapi, uvicorn, folium

@@ -15,8 +15,8 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 - [x] B2. Nearest-arc-with-heading baseline: 86.0% student-test Top-1 (`07_pipeline.md`) · S
 - [x] B3. Training harness (`scripts/train_models.py`, `src/pathsnap/modeling.py`): group-CV by trip, 1,000-point cap per trip, logged configs/seeds/times · S
 - [x] B3a. Random Forest, HistGradientBoosting, MLP: student-test Top-1 88.4% / 89.1% / 88.6% (`results/model_runs.csv`) · S
-- [ ] B3b. Logistic Regression and Gaussian NB: **unblocked now**. Add `lr` and `gnb` entries to `src/pathsnap/models.py`, then run `python scripts/train_models.py data/raw data/processed results/dataset_build_summary.csv results data/probs lr gnb` · **K**
-- [ ] B4. Comparison table and plots (CV macro F1, student-test Top-1 and macro F1, log loss) · **K**, table content from **S**
+- [x] B3b. Logistic Regression and Gaussian NB trained (added by S so the five-model set exists for Review 1; results in `results/model_runs.csv`). **K** still owns the report write-up for these two: the nine questions in report §3.2
+- [x] B4. Comparison plots drafted by `scripts/make_model_plots.py` into `report/figures/models/`. **K** reviews and restyles them for the report
 - [ ] B5. Final model choice with written reasoning · **S**
 - [ ] B6. Optuna Bayesian optimisation, trial CSV, tuned vs untuned · **S**
 - [ ] B7. Save final model, scaler and config in `models/` · **S**
