@@ -1,52 +1,53 @@
 # 04 · To-do list
 
-Status as of 18 Nov 2026: docs and data audit done. **No model, HMM, API or UI code exists yet.** Put your name next to a task before starting. Tick it when merged.
+Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md): **S** = Santosh, **K** = Koushik, **Sh** = Sharath. Tick a task when it is merged to `main`. Streams B and C wait on the training harness (B3), nothing else blocks anyone.
 
-Dependencies run top to bottom inside a stream; streams B and C can start once the table shapes in `03_plan.md` §13 are agreed, using a few trips.
-
-## Stream A · Data, labels, candidates (blocks everything)
-- [ ] A1. Loader and per-trip projection in `src/pathsnap/` (owner: )
-- [ ] A2. Gap segmentation (`segment_id`), large-dt handling
-- [ ] A3. EDA outputs for the report (missing-value table, trajectory plots, road-network plots, Folium map of a trip) on train and student-test, with the partition labelled
-- [ ] A4. Label alignment (monotone, revisits allowed). Log ambiguity
-- [ ] A5. Quarantine trips 33 and 54, document in code and report
-- [ ] A6. Candidate generation (R, K, reverse twin). Candidate miss rate per trip
+## Stream A · Data, labels, candidates (Santosh) · DONE
+- [x] A1. Loader and per-trip projection (`trips.py`)
+- [x] A2. Gap segmentation (`segments.py`)
+- [ ] A3. EDA outputs for the report, with the partition labelled · **K**
+- [x] A4. Label alignment, monotone with revisits (`labels.py`)
+- [x] A5. Quarantine rule, trips 33 and 54 flagged automatically
+- [x] A6. Candidate generation, miss rate per trip (`candidates.py`, `results/dataset_build_summary.csv`)
 
 ## Stream B · Features and models
-- [ ] B1. Feature builder, scaler fitted on train only
-- [ ] B2. Nearest-arc-with-heading baseline
-- [ ] B3. Five models in different families, group-CV by trip, logged configs, seeds, times
-- [ ] B4. Model comparison table and plots (CV macro F1, student-test Top-1 and macro F1, log loss)
-- [ ] B5. Pick the final model with written reasoning
-- [ ] B6. Optuna Bayesian optimisation on the chosen model, trial CSV, tuned vs untuned
-- [ ] B7. Save final model, scaler, config in `models/`
+- [x] B1. Feature builder (`features.py`) · S. Scaler fitting still to do inside the harness
+- [x] B2. Nearest-arc-with-heading baseline: 86.0% student-test Top-1 (`07_pipeline.md`) · S
+- [ ] B3. Training harness: group-CV by trip, per-trip weighting, logged configs/seeds/times · **S**
+- [ ] B3a. Random Forest, HistGradientBoosting/LightGBM, MLP · **S**
+- [ ] B3b. Logistic Regression and Gaussian NB (after B3) · **K**
+- [ ] B4. Comparison table and plots (CV macro F1, student-test Top-1 and macro F1, log loss) · **K**, table content from **S**
+- [ ] B5. Final model choice with written reasoning · **S**
+- [ ] B6. Optuna Bayesian optimisation, trial CSV, tuned vs untuned · **S**
+- [ ] B7. Save final model, scaler and config in `models/` · **S**
 
-## Stream C · HMM and Viterbi
-- [ ] C1. Network graph per trip (sparse), Dijkstra with cutoff
+## Stream C · HMM and Viterbi (Santosh)
+- [ ] C1. Per-trip network graph, sparse Dijkstra with cutoff
 - [ ] C2. Emissions, time-scaled transitions, gap reset
 - [ ] C3. Log-space Viterbi, route output with connecting arcs
 - [ ] C4. Tune decoder parameters on train and student-test only
-- [ ] C5. Classifier-only vs classifier+HMM comparison, including failure cases
+- [ ] C5. Classifier-only vs classifier+HMM comparison, including failures
 - [ ] C6. Metrics module: Top-1, macro F1, log loss, miss rate, route continuity, overlap
+- [ ] C7. Put classifier+HMM into `predict_trip`
 
 ## Stream D · API, UI, maps, report
-- [ ] D1. FastAPI app: `GET /trips`, `POST /predict`, request logging
-- [ ] D2. Server-side scoring module that is the only reader of reference labels
-- [ ] D3. UI page with trip list, map, results panel
-- [ ] D4. Two-laptop test: bind address, CORS, firewall. Use student-test trips as stand-ins
-- [ ] D5. Folium map generator, one HTML map committed
-- [ ] D6. README with install, run and deploy steps
-- [ ] D7. Report: tables and plots generated from `results/`; the nine questions per model and the analysis written by the team from its own results
+- [ ] D1. FastAPI app: `GET /trips`, `POST /predict`, request logging · **Sh**
+- [ ] D2. Server-side scoring module, the only reader of `.route` · **Sh**
+- [ ] D3. UI page with trip list, map, results panel · **Sh**
+- [ ] D4. Two-laptop test: bind address, CORS, firewall · **Sh**
+- [ ] D5. Folium map generator, one HTML map committed · **K**
+- [ ] D6. README install, run and deploy steps · **Sh**
+- [ ] D7. Report: tables and plots generated from `results/`, analysis written by the owner of each section (see split doc)
 
 ## Everyone, before the event
-- [ ] Fresh clone, fresh venv, run end to end, hit the API from the second laptop
-- [ ] Viva rehearsal: each member explains dataset, preprocessing, features, model choice, BO, HMM, Viterbi, API, UI, results
-- [ ] Scan history and files for secrets and data files before making the repo public
-- [ ] Get answers to `05_open_questions.md`
+- [ ] Fresh clone, fresh venv, run end to end, hit the API from the second laptop · Sh with all
+- [ ] Walkthroughs and viva rehearsal (see split doc)
+- [ ] Scan history and files for secrets and data files before making the repo public · Sh
+- [ ] Get answers to `05_open_questions.md` · S
 
 ## Risks
-- Label alignment may be noisy or differ from the organisers' scoring.
-- Candidate misses cap Top-1. Tune R and K first.
+- Label alignment may differ from the organisers' scoring.
+- Candidate misses cap Top-1 (0.6% pooled on clean trips, up to 14.8% on trip 72).
 - Disconnected network pieces and time gaps break Viterbi. Handle with resets.
 - Class imbalance: roughly one candidate in five to eight is correct. Macro F1 and log loss matter more than accuracy.
 - Evaluator trips may have defects like trips 33 and 54. The pipeline must degrade gracefully.
