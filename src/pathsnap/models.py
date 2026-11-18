@@ -5,6 +5,9 @@ history(estimator) returning epoch-wise curves for models that have them.
 To add a model, copy one entry, change family/config/build, and run
     python scripts/train_models.py <name> ...
 """
+import json
+import os
+
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
@@ -59,3 +62,14 @@ REGISTRY = {
     # Koushik: add "lr" (LogisticRegression in a StandardScaler pipeline) and
     # "gnb" (GaussianNB) here, same shape as the entries above.
 }
+
+# The Bayesian-tuned boosting model appears once scripts/bayes_opt.py has written its result.
+_BEST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "results", "bayes_best_hgb.json")
+if os.path.exists(_BEST):
+    with open(_BEST) as _fh:
+        _tuned = json.load(_fh)["config"]
+    REGISTRY["hgb_tuned"] = dict(
+        family="Boosting (histogram gradient boosting, Bayesian-tuned)",
+        config=dict(**_tuned, early_stopping=True, validation_fraction=0.1, n_iter_no_change=15, scoring="loss"),
+        build=_hgb, history=_hgb_history,
+    )

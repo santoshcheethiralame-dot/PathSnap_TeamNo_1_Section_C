@@ -30,6 +30,32 @@ def build_graph(trip):
     return csr_matrix((df.w.to_numpy(), (df.u.to_numpy(), df.v.to_numpy())), shape=(n, n))
 
 
+def route_nodes(trip, graph, arcs, max_fill_m=2000.0):
+    """Node sequence of the driven route. Consecutive distinct arcs that do not
+    touch are joined by the shortest path between them (if shorter than
+    max_fill_m), so the polyline drawn on a map has no teleporting jumps."""
+    arcs = np.asarray(arcs)
+    arcs = arcs[arcs >= 0]
+    if len(arcs) == 0:
+        return np.zeros(0, dtype=np.int64)
+    arcs = arcs[np.r_[True, arcs[1:] != arcs[:-1]]]
+    nodes = [int(trip.u[arcs[0]]), int(trip.v[arcs[0]])]
+    for a, b in zip(arcs[:-1], arcs[1:]):
+        src, dst = int(trip.v[a]), int(trip.u[b])
+        if src != dst:
+            dist, pred = dijkstra(graph, directed=True, indices=src, limit=max_fill_m, return_predecessors=True)
+            if np.isfinite(dist[dst]):
+                path, cur = [], dst
+                while cur != src:
+                    path.append(cur)
+                    cur = int(pred[cur])
+                nodes.extend(reversed(path))
+            else:
+                nodes.append(dst)
+        nodes.append(int(trip.v[b]))
+    return np.array(nodes, dtype=np.int64)
+
+
 def group_candidates(df):
     """df needs point_idx, arc_id, frac, prob. Returns per-point arrays."""
     df = df.sort_values("point_idx", kind="stable")
