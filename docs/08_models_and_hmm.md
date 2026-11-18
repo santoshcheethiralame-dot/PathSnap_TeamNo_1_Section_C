@@ -17,9 +17,9 @@ All numbers come from the CSV files in `results/`. Labels are our own alignment 
 | HistGradientBoosting | boosting | 89.2% | 0.9329 (0.014) | **89.1%** | 0.931 | 0.094 | 74.5% | 2.4 s | 1.1 µs/row |
 | Random Forest | bagged trees | 89.4% | 0.9343 (0.014) | 88.4% | 0.929 | 0.094 | 74.4% | 50 s | 2.9 µs/row |
 | MLP (64, 32) | neural network | 89.0% | 0.9294 (0.014) | 88.6% | 0.929 | 0.097 | 74.9% | 112 s | 1.1 µs/row |
-| HGB, Bayesian-tuned | boosting | 89.5% | 0.9347 (0.014) | 89.1% | 0.931 | 0.092 | 75.2% | 17 s | 13 µs/row* |
+| HGB, Bayesian-tuned | boosting | 89.5% | 0.9347 (0.014) | 89.1% | 0.931 | 0.092 | 75.2% | 8.4 s* | 3.2 µs/row* |
 
-*Measured while another job was using the CPU; the tuned model has 103 leaves instead of 31, so it is slower, but the exact figure is unreliable. Re-time it on a quiet machine before quoting it.
+*Re-timed on an otherwise idle machine (best of 5): tuned HGB 8.4 s to fit and 3.2 µs per row to predict, untuned HGB 2.4 s and 0.95 µs per row. `results/model_runs.csv` holds 17 s and 13 µs for the tuned model because that run shared the CPU with other jobs. The tuned model has 103 leaves and 264 trees instead of 31 leaves and 100 trees, so it is about 3 times slower to predict.
 
 The forest, boosting and MLP are within about a point of each other, and the fold-to-fold standard deviation of macro F1 is 0.014, so the ranking among them is not statistically solid (paired over the same folds: boosting minus forest is -0.18 points Top-1, boosting minus MLP +0.17). Boosting beats logistic regression in all 5 folds, by 0.8 points on average. The gap to the baseline (86.0% to about 89%) is real; logistic regression is only 0.5 points above the baseline and naive Bayes is below it.
 
@@ -48,7 +48,7 @@ Figures: `report/figures/models/` (made by `scripts/make_model_plots.py`). Revie
 | Student-test Top-1 | 89.14% | 89.09% |
 | Student-test macro F1 | 0.9310 | 0.9314 |
 | Student-test log loss | 0.0943 | 0.0920 |
-| Fit time | 2.4 s | 17.3 s |
+| Fit time (idle machine) | 2.4 s | 8.4 s |
 
 **Did tuning help?** Barely. CV Top-1 rises 0.28 points, the 40 trials span only 88.99% to 89.48% (median 89.37%), and the fold-to-fold standard deviation of Top-1 is about 2.6 points. Student-test Top-1 does not move (-0.05 points); only log loss improves a little. The default was already close to the optimum, and the report should say so rather than claim a big gain.
 
@@ -69,7 +69,7 @@ Decoder settings are tuned per classifier on train out-of-fold probabilities (th
 
 Per trip files: `results/hmm_student_test_hgb.csv`, `results/hmm_student_test_hgb_tuned.csv`. Student-test Top-1 improves on every trip for both models, by about 1 to 5 points on the untuned model. The weakest trip is still 77. HMM never made a student-test trip worse here, but the question "where did HMM not help" must be answered in the report from the train out-of-fold results too. `scripts/hmm_failure_analysis.py` is the starting point.
 
-End to end check (`scripts/check_predict.py`): `predict_trip` run as the API will run it, on the 10 student-test trips, gives exactly 93.15% Top-1 and 90.4% route continuity, matching the numbers above, and takes at most 0.8 s per trip.
+End to end check (`scripts/check_predict.py`): `predict_trip` run as the API will run it, on the 10 student-test trips, gives exactly 93.15% Top-1 and 90.4% route continuity, matching the numbers above, and takes at most about 0.9 s per trip on an idle machine (1.9 s when the CPU was shared).
 
 ## How the decoder works (so you can explain it)
 - **Hidden states:** the candidate arcs of each GPS fix.
@@ -83,5 +83,5 @@ End to end check (`scripts/check_predict.py`): `predict_trip` run as the API wil
 - Everything depends on our label alignment.
 - The choice among the three strong models, and between untuned and tuned boosting, is within noise.
 - Decoder and classifier were both tuned and evaluated on trips from the same region mix; evaluator trips may behave differently.
-- The Bayesian search used 40 trials and ran while the CPU was shared, so its timing is not clean.
-- The inference time of the tuned model is not reliably measured (see the note under the table).
+- The Bayesian search used 40 trials and ran while the CPU was shared, so its 34-minute duration is not a clean timing. Its objective is the CV score itself, so the CV gain (+0.28 points) is optimistic; the student-test result, which the search never saw, shows no gain.
+- Where the HMM does not help (train out-of-fold, tuned model, `results/hmm_per_trip_hgb_tuned.csv`): better on 74 of 78 trips, worse on 1 (trip 72, minus 2.8 points), about equal on 3 (change within 0.1 points). Trip 72 is also the trip where the correct road is most often missing from the candidates (14.8%), and an HMM cannot choose a road that is not offered. Trip 16 stays at about 53% for both. The cause there has not been analysed.
