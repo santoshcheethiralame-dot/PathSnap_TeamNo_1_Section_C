@@ -1,6 +1,6 @@
 # 08 · Models and HMM results
 
-All numbers come from the CSV files in `results/`. Labels are our own alignment (`docs/07_pipeline.md`), so the absolute values will shift if the organisers' labels differ. Student-test was used for reporting only, never for fitting, feature choice or decoder tuning.
+All numbers come from the CSV files in `results/`. Labels are our own alignment (`docs/07_pipeline.md`), so the absolute values will shift if the organisers' labels differ. Student-test was used for reporting and for the development-stage model comparison the rules allow, never for fitting, feature choice, Bayesian search or decoder tuning.
 
 ## Setup
 - Fit on the 78 non-quarantined train trips (33 and 54 excluded), at most 1,000 points per trip, about 457,000 candidate rows.
@@ -17,6 +17,9 @@ All numbers come from the CSV files in `results/`. Labels are our own alignment 
 | HistGradientBoosting | boosting | 89.2% | 0.9329 (0.014) | **89.1%** | 0.931 | 0.094 | 74.5% | 2.4 s | 1.1 µs/row |
 | Random Forest | bagged trees | 89.4% | 0.9343 (0.014) | 88.4% | 0.929 | 0.094 | 74.4% | 50 s | 2.9 µs/row |
 | MLP (64, 32) | neural network | 89.0% | 0.9294 (0.014) | 88.6% | 0.929 | 0.097 | 74.9% | 112 s | 1.1 µs/row |
+| HGB, Bayesian-tuned | boosting | 89.5% | 0.9347 (0.014) | 89.1% | 0.931 | 0.092 | 75.2% | 17 s | 13 µs/row* |
+
+*Measured while another job was using the CPU; the tuned model has 103 leaves instead of 31, so it is slower, but the exact figure is unreliable. Re-time it on a quiet machine before quoting it.
 
 The forest, boosting and MLP are within about a point of each other, and the fold-to-fold standard deviation of macro F1 is 0.014, so the ranking among them is not statistically solid (paired over the same folds: boosting minus forest is -0.18 points Top-1, boosting minus MLP +0.17). Boosting beats logistic regression in all 5 folds, by 0.8 points on average. The gap to the baseline (86.0% to about 89%) is real; logistic regression is only 0.5 points above the baseline and naive Bayes is below it.
 
@@ -33,21 +36,40 @@ The forest overfits (6.7-point train-to-test gap). Logistic regression underfits
 
 Figures: `report/figures/models/` (made by `scripts/make_model_plots.py`). Review scripts: `docs/presentation/`.
 
-**Provisional choice: HistGradientBoosting.** Best student-test Top-1, the same CV quality as the forest, and 20 to 45 times cheaper to train, which makes the Bayesian search affordable. Write your own justification in the report.
+## Model choice and Bayesian optimisation
+**Chosen family: HistGradientBoosting.** Best student-test Top-1 among the untuned models, the same CV quality as the forest, no overfitting gap like the forest's, and 20 to 45 times cheaper to train, which makes a Bayesian search affordable. Write your own justification in the report.
+
+**Search** (`scripts/bayes_opt.py`, results in `results/bayes_trials_hgb.csv` and `bayes_best_hgb.json`): Optuna TPE, seed 0, 40 trials, about 34 minutes. Objective: mean observation-level Top-1 over the same 5 trip-grouped folds as the untuned run (Top-1 because it is the route-matching metric; log loss and macro F1 are logged for every trial). Search space: learning rate 0.02 to 0.3 (log), leaf nodes 8 to 128 (log), minimum samples per leaf 10 to 400 (log), L2 1e-4 to 10 (log), bins 64, 128 or 255, iterations 150 to 500. Trial 0 is the default-like configuration, so the search contains its own reference point. Best is trial 35: learning rate 0.024, 103 leaves, minimum leaf 19, L2 0.017, 255 bins, 264 iterations.
+
+| | Untuned HGB | Tuned HGB |
+|---|---|---|
+| CV Top-1 (5 folds) | 89.20% | 89.48% |
+| CV macro F1 | 0.9329 | 0.9347 |
+| Student-test Top-1 | 89.14% | 89.09% |
+| Student-test macro F1 | 0.9310 | 0.9314 |
+| Student-test log loss | 0.0943 | 0.0920 |
+| Fit time | 2.4 s | 17.3 s |
+
+**Did tuning help?** Barely. CV Top-1 rises 0.28 points, the 40 trials span only 88.99% to 89.48% (median 89.37%), and the fold-to-fold standard deviation of Top-1 is about 2.6 points. Student-test Top-1 does not move (-0.05 points); only log loss improves a little. The default was already close to the optimum, and the report should say so rather than claim a big gain.
+
+**Final model: tuned HGB + HMM**, chosen because it has the best CV Top-1, the best CV and student log loss, and the best Top-1 after HMM decoding (below). The difference to the untuned model is within noise, so either would be defensible. It is saved in `models/` (1.4 MB) and `predict_trip` uses it.
 
 Epoch/iteration histories exist for HGB and the MLP only (`results/history_*.json`). The forest has none, so no training curve may be drawn for it. The HGB early-stopping hold-out and the MLP validation split use random rows, not whole trips, so they are for stopping only.
 
-## HMM + Viterbi on top of HGB (`scripts/run_hmm.py`)
-Settings tuned on train out-of-fold probabilities (the classifier never saw those trips), 54 combinations in `results/hmm_grid_hgb.csv`: emission weight 1.0, transition scale beta = 3 m, gamma = 0, flat penalty 20 for unreachable moves. The best setting sits inside the range searched (beta 2 to 20), and the surface is flat (train Top-1 92.0% to 92.1% for beta 2 to 5), so the choice is not sensitive.
+## HMM + Viterbi (`scripts/run_hmm.py`)
+Decoder settings are tuned per classifier on train out-of-fold probabilities (the classifier never saw those trips). Grid: 50 combinations (emission weight 0.5 to 5, transition scale beta 1 to 10 m, gamma 0 or 0.1, flat penalty 20 for unreachable moves), in `results/hmm_grid_<model>.csv`. For both models the best setting lies strictly inside the grid and the surface is flat (best Top-1 per beta value within 0.2 points for beta 1 to 5), so the choice is not sensitive.
 
-| | Classifier only | Classifier + HMM |
+| | HGB untuned | HGB tuned (final) |
 |---|---|---|
-| Train, out-of-fold Top-1 | 89.1% | 92.1% |
-| Student-test Top-1 (point-weighted) | 89.1% | **92.8%** |
-| Student-test route continuity (mean per trip) | 74.5% | **90.9%** |
-| Student-test trips improved / worsened | n/a | 10 / 0 |
+| Chosen setting | weight 1, beta 3, gamma 0 | weight 2, beta 2, gamma 0 |
+| Train out-of-fold Top-1: classifier only to with HMM | 89.1% to 92.1% | 89.4% to **92.3%** |
+| Student-test Top-1 (point-weighted): classifier only to with HMM | 89.1% to 92.8% | 89.1% to **93.2%** |
+| Student-test route continuity (mean per trip): classifier only to with HMM | 74.5% to 90.9% | 75.2% to 90.4% |
+| Student-test trips improved / worsened | 10 / 0 | 10 / 0 |
 
-Per trip, Top-1 improves between 1.1 and 5.4 points (`results/hmm_student_test_hgb.csv`). The weakest trip is still 77 (84.3%), and trips 9, 52 and 91 have the lowest continuity, around 84% to 88%. HMM never made a student-test trip worse here, but the question "where did HMM not help" must be answered in the report from the train out-of-fold results too, and is not answered yet.
+Per trip files: `results/hmm_student_test_hgb.csv`, `results/hmm_student_test_hgb_tuned.csv`. Student-test Top-1 improves on every trip for both models, by about 1 to 5 points on the untuned model. The weakest trip is still 77. HMM never made a student-test trip worse here, but the question "where did HMM not help" must be answered in the report from the train out-of-fold results too. `scripts/hmm_failure_analysis.py` is the starting point.
+
+End to end check (`scripts/check_predict.py`): `predict_trip` run as the API will run it, on the 10 student-test trips, gives exactly 93.15% Top-1 and 90.4% route continuity, matching the numbers above, and takes at most 0.8 s per trip.
 
 ## How the decoder works (so you can explain it)
 - **Hidden states:** the candidate arcs of each GPS fix.
@@ -59,6 +81,7 @@ Per trip, Top-1 improves between 1.1 and 5.4 points (`results/hmm_student_test_h
 
 ## Caveats
 - Everything depends on our label alignment.
-- The model choice among the three is within noise.
+- The choice among the three strong models, and between untuned and tuned boosting, is within noise.
 - Decoder and classifier were both tuned and evaluated on trips from the same region mix; evaluator trips may behave differently.
-- The Bayesian optimisation step (docs/04_todo.md B6) is run after this document was written; see `results/bayes_*` when it lands.
+- The Bayesian search used 40 trials and ran while the CPU was shared, so its timing is not clean.
+- The inference time of the tuned model is not reliably measured (see the note under the table).
