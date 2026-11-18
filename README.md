@@ -89,7 +89,7 @@ python scripts/make_folium_map.py data/raw student_test 00000009 report/maps/tri
 | `tests/` | Unit tests on synthetic roads and a synthetic trip for the API |
 | `scripts/` | Audit, dataset build, training, Bayesian search, HMM, analysis, figures, maps |
 | `results/` | Every CSV and JSON behind the reported numbers |
-| `report/` | Figures (EDA, model plots, Review 1), Folium map, Review 1 handout |
+| `report/` | `PathSnap_Report.pdf` (final report, built by `scripts/make_report.py`), figures (EDA, models, UI screenshots, Review 1), Folium map, Review 1 handout |
 | `requirements.txt` | Pinned dependencies |
 
 ## Ground rules

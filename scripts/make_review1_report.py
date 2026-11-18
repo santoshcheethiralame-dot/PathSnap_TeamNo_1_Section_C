@@ -56,7 +56,7 @@ s = []
 s += [Paragraph("PathSnap: Review 1 handout", H1),
       Paragraph("Map-matching GPS fixes to roads. UE24CS352A. Team 1, Section C. Student-test and train data only; evaluator data not used.", SM),
       Paragraph("1. What we built", H2),
-      Paragraph("Each GPS fix has about 11 candidate road arcs nearby (10 nearest within 40 m, plus the opposite-direction twin of each). "
+      Paragraph("Each GPS fix has about 6.5 candidate road arcs nearby on average (the 10 nearest within 40 m, plus the opposite-direction twin of each). "
                 "A classifier scores every candidate with 17 features (distance, side of road, heading agreement, speed, rank and similar) "
                 "and answers one question: is this the reference road? The highest score is the prediction. "
                 "A rule baseline (nearest road plus a heading check) reaches " + pct(b_top1) + " on the student-test trips, "

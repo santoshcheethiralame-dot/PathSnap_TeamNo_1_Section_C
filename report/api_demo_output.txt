@@ -1,0 +1,35 @@
+> curl http://127.0.0.1:8000/health
+{"status":"ok","trips_available":10}
+
+> curl http://127.0.0.1:8000/trips
+{"count":10,"trips":["00000000","00000007","00000009","00000040","00000052","00000056","00000065","00000076","00000077","00000091"]}
+
+> curl -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d "{\"trip_id\":\"00000040\"}"   (long lists shortened)
+{
+  "trip_id": "00000040",
+  "method": "hgb_tuned classifier + HMM/Viterbi",
+  "n_points": 2995,
+  "point_arc": [3411, 3411, 3411, ... (2995 items)],
+  "route_arcs": [3411, 3449, 3412, ... (320 items)],
+  "route_lonlat": [[61.134211, 55.416099], [61.133049, 55.416655], [61.134211, 55.416099], ... (333 items)],
+  "fix_lonlat": [[61.13315500000001, 55.416220999999986], [61.133267999999994, 55.41616500000001], [61.133105, 55.41617300000001], ... (2995 items)],
+  "scored": true,
+  "n_labelled": 2995,
+  "top1_accuracy": 0.9572621035058431,
+  "prediction_coverage": 1.0,
+  "route_continuity": 0.9623824451410659,
+  "predicted_route_arcs": 320,
+}
+
+> POST /predict, unknown trip id
+HTTP 404
+> POST /predict, path-like trip id
+HTTP 400
+
+> api/logs/requests.log (last lines on the API laptop)
+2026-11-18 15:22:42,762 - INFO - GET /health - Status: 200 - 4.53 ms
+2026-11-18 15:22:42,864 - INFO - GET /trips - Status: 200 - 8.77 ms
+2026-11-18 15:22:43,539 - INFO - predict trip=00000040 method=hgb_tuned classifier + HMM/Viterbi points=2995 route_arcs=320 top1=0.9573 continuity=0.9624 scored=True time=0.61s
+2026-11-18 15:22:43,552 - INFO - POST /predict - Status: 200 - 621.76 ms
+2026-11-18 15:22:43,634 - INFO - POST /predict - Status: 404 - 1.00 ms
+2026-11-18 15:22:43,704 - INFO - POST /predict - Status: 400 - 0.91 ms
