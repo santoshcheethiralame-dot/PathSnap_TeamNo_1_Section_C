@@ -5,7 +5,7 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 ## Stream A · Data, labels, candidates (Santosh) · DONE
 - [x] A1. Loader and per-trip projection (`trips.py`)
 - [x] A2. Gap segmentation (`segments.py`)
-- [ ] A3. EDA outputs for the report, with the partition labelled · **K**
+- [x] A3. EDA outputs for the report, with the partition labelled (`scripts/make_eda.py`, `report/figures/eda/`) · **K**
 - [x] A4. Label alignment, monotone with revisits (`labels.py`)
 - [x] A5. Quarantine rule, trips 33 and 54 flagged automatically
 - [x] A6. Candidate generation, miss rate per trip (`candidates.py`, `results/dataset_build_summary.csv`)
@@ -31,18 +31,18 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 - [x] C7. Classifier + HMM wired into `predict_trip`; end-to-end check reproduces 93.15% (`scripts/check_predict.py`). Sharath can now build the API on it
 
 ## Stream D · API, UI, maps, report
-- [ ] D1. FastAPI app: `GET /trips`, `POST /predict`, request logging · **Sh**
-- [ ] D2. Server-side scoring module, the only reader of `.route` · **Sh**
-- [ ] D3. UI page with trip list, map, results panel · **Sh**
-- [ ] D4. Two-laptop test: bind address, CORS, firewall · **Sh**
-- [ ] D5. Folium map generator, one HTML map committed · **K**
-- [ ] D6. README install, run and deploy steps · **Sh**
+- [x] D1. FastAPI app: `GET /trips`, `POST /predict`, request logging · **Sh**. Trips folder now set by `PATHSNAP_TRIPS_DIR`, so the evaluator folder needs no code change
+- [x] D2. Server-side scoring module, the only reader of `.route` · **Sh**. Trips without a `.route` return `scored: false`
+- [x] D3. UI page with trip list, map, results panel · **Sh**. Checked in a browser against the running API (load trips, reconstruct, metrics). Screenshots for report §7 still to take
+- [ ] D4. Two-laptop test: bind address, CORS, firewall · **Sh**. Done on one machine through its LAN address (all 10 trips, CORS preflight OK); the real second laptop and the firewall rule are still to try. Steps are in the README
+- [x] D5. Folium map generator (`scripts/make_folium_map.py`), HTML and PNG of one trip in `report/maps/`. **K** can regenerate and pick the trip for the report
+- [x] D6. README install, run and deploy steps (drafted; **Sh** to confirm on the real laptops)
 - [ ] D7. Report: tables and plots generated from `results/`, analysis written by the owner of each section (see split doc)
 
 ## Everyone, before the event
 - [ ] Fresh clone, fresh venv, run end to end, hit the API from the second laptop · Sh with all
 - [ ] Walkthroughs and viva rehearsal (see split doc)
-- [ ] Scan history and files for secrets and data files before making the repo public · Sh
+- [x] Scan history and files for secrets and data files before making the repo public: working tree and full history show no data files, keys or tokens (18 Nov). Re-run before the final push
 - [ ] Get answers to `05_open_questions.md` · S
 
 ## Risks
