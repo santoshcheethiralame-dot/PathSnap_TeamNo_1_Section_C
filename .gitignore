@@ -1,0 +1,15 @@
+# dataset: large, organiser-owned, never commit
+data/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# local junk
+.DS_Store
+Thumbs.db
+.env
+*.pkl
