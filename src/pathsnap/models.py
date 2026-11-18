@@ -9,6 +9,8 @@ from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassif
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 
 SEED = 0
 
@@ -23,6 +25,16 @@ def _hgb(c):
 
 def _mlp(c):
     return make_pipeline(StandardScaler(), MLPClassifier(**c, random_state=SEED))
+
+def _lr(c):
+    return make_pipeline(
+        StandardScaler(),
+        LogisticRegression(**c, random_state=SEED)
+    )
+
+
+def _gnb(c):
+    return GaussianNB(**c)
 
 
 def _hgb_history(est):
@@ -56,6 +68,15 @@ REGISTRY = {
                     n_iter_no_change=8, max_iter=60, batch_size=512),
         build=_mlp, history=_mlp_history,
     ),
-    # Koushik: add "lr" (LogisticRegression in a StandardScaler pipeline) and
-    # "gnb" (GaussianNB) here, same shape as the entries above.
+    "lr": dict(
+        family="Linear model (Logistic Regression)",
+        config=dict(C=1.0, max_iter=1000),
+        build=_lr, history=None,
+    ),
+
+    "gnb": dict(
+        family="Probabilistic model (Gaussian Naive Bayes)",
+        config=dict(var_smoothing=1e-9),
+        build=_gnb, history=None,
+    ),
 }
