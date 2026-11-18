@@ -12,11 +12,26 @@ All numbers come from the CSV files in `results/`. Labels are our own alignment 
 | Model | Family | CV Top-1 | CV macro F1 (std) | Student Top-1 | Student macro F1 | Student log loss | Route continuity | Fit time | Inference |
 |---|---|---|---|---|---|---|---|---|---|
 | nearest + heading rule | rule baseline | 87.3% (train mean) | n/a | 86.0% | n/a | n/a | n/a | n/a | n/a |
+| Logistic Regression | linear | 88.4% | 0.9149 (0.015) | 86.5% | 0.909 | 0.128 | 72.4% | 1.5 s | 0.17 µs/row |
+| Gaussian Naive Bayes | probabilistic | 86.2% | 0.8390 (0.013) | 83.3% | 0.827 | 0.687 | 71.6% | 0.2 s | 0.41 µs/row |
 | HistGradientBoosting | boosting | 89.2% | 0.9329 (0.014) | **89.1%** | 0.931 | 0.094 | 74.5% | 2.4 s | 1.1 µs/row |
 | Random Forest | bagged trees | 89.4% | 0.9343 (0.014) | 88.4% | 0.929 | 0.094 | 74.4% | 50 s | 2.9 µs/row |
 | MLP (64, 32) | neural network | 89.0% | 0.9294 (0.014) | 88.6% | 0.929 | 0.097 | 74.9% | 112 s | 1.1 µs/row |
 
-The three models are within about a point of each other and the fold-to-fold standard deviation of macro F1 is 0.014, so the ranking among them is not statistically solid. The gap to the baseline (86.0% to about 89%) is real. Logistic Regression and Gaussian NB (Koushik) will fill the remaining two rows.
+The forest, boosting and MLP are within about a point of each other, and the fold-to-fold standard deviation of macro F1 is 0.014, so the ranking among them is not statistically solid (paired over the same folds: boosting minus forest is -0.18 points Top-1, boosting minus MLP +0.17). Boosting beats logistic regression in all 5 folds, by 0.8 points on average. The gap to the baseline (86.0% to about 89%) is real; logistic regression is only 0.5 points above the baseline and naive Bayes is below it.
+
+## Overfitting and error evidence (`results/model_diagnostics.csv`, `confusion_matrices.csv`)
+| Model | Train Top-1 | Student Top-1 | Train log loss | Student log loss | Student precision / recall |
+|---|---|---|---|---|---|
+| Logistic Regression | 87.9% | 86.5% | 0.125 | 0.128 | 0.841 / 0.853 |
+| Gaussian NB | 85.9% | 83.3% | 0.580 | 0.687 | 0.608 / 0.888 |
+| Random Forest | **95.1%** | 88.4% | 0.047 | 0.094 | 0.896 / 0.865 |
+| HistGradientBoosting | 90.6% | 89.1% | 0.077 | 0.094 | 0.886 / 0.883 |
+| MLP | 90.1% | 88.6% | 0.080 | 0.097 | 0.885 / 0.877 |
+
+The forest overfits (6.7-point train-to-test gap). Logistic regression underfits (low on both). Naive Bayes is badly calibrated: many false positives, log loss 0.69, because the features are strongly correlated. On student-test, boosting's correct road is missing from the candidates for 49 of 19,157 labelled points (0.26%); of its remaining mistakes (10.6% of points), 32% pick the opposite direction of the correct road and 68% a different segment. What that 68% consists of has not been analysed.
+
+Figures: `report/figures/models/` (made by `scripts/make_model_plots.py`). Review scripts: `docs/presentation/`.
 
 **Provisional choice: HistGradientBoosting.** Best student-test Top-1, the same CV quality as the forest, and 20 to 45 times cheaper to train, which makes the Bayesian search affordable. Write your own justification in the report.
 

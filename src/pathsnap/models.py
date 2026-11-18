@@ -9,6 +9,8 @@ import json
 import os
 
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -59,8 +61,16 @@ REGISTRY = {
                     n_iter_no_change=8, max_iter=60, batch_size=512),
         build=_mlp, history=_mlp_history,
     ),
-    # Koushik: add "lr" (LogisticRegression in a StandardScaler pipeline) and
-    # "gnb" (GaussianNB) here, same shape as the entries above.
+    "lr": dict(
+        family="Linear",
+        config=dict(C=1.0, penalty="l2", max_iter=500),
+        build=lambda c: make_pipeline(StandardScaler(), LogisticRegression(**c, random_state=SEED)), history=None,
+    ),
+    "gnb": dict(
+        family="Probabilistic (generative)",
+        config=dict(var_smoothing=1e-9),
+        build=lambda c: GaussianNB(**c), history=None,
+    ),
 }
 
 # The Bayesian-tuned boosting model appears once scripts/bayes_opt.py has written its result.
