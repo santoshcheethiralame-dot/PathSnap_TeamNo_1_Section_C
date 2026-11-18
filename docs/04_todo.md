@@ -22,12 +22,12 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 - [ ] B7. Save final model, scaler and config in `models/` · **S**
 
 ## Stream C · HMM and Viterbi (Santosh)
-- [ ] C1. Per-trip network graph, sparse Dijkstra with cutoff
-- [ ] C2. Emissions, time-scaled transitions, gap reset
-- [ ] C3. Log-space Viterbi, route output with connecting arcs
-- [ ] C4. Tune decoder parameters on train and student-test only
-- [ ] C5. Classifier-only vs classifier+HMM comparison, including failures
-- [ ] C6. Metrics module: Top-1, macro F1, log loss, miss rate, route continuity, overlap
+- [x] C1. Per-trip network graph, sparse Dijkstra with cutoff (`hmm.py`)
+- [x] C2. Emissions, route-distance transitions, gap reset
+- [x] C3. Log-space Viterbi. Connecting-arc route fill for the UI still to do
+- [x] C4. Decoder parameters tuned on train out-of-fold probabilities (`results/hmm_grid_hgb.csv`)
+- [ ] C5. Classifier-only vs classifier+HMM: done on student-test (89.1% to 92.8% Top-1, 74.5% to 90.9% continuity). Failure-case analysis still to do
+- [x] C6. Metrics module (`metrics.py`). Route overlap metric not done
 - [ ] C7. Put classifier+HMM into `predict_trip`
 
 ## Stream D · API, UI, maps, report
