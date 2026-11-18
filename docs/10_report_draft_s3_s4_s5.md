@@ -4,6 +4,8 @@ DRAFT, prepared with AI assistance (disclose in the report as the event requires
 
 The organiser PDF numbers the §3.2 questions 1, 2, 5, 6, 7, 8, 9 (3 and 4 do not appear in the text). Answered below under those numbers.
 
+**Numbers in this draft are the Review 1 run (17 features).** The final run (26 features, results in `results/`) is summarised at the top of `docs/08_models_and_hmm.md`; update every figure below from it before writing the report. Notably the tuned model's train-to-test gap is now about 6 points, so the "no overfitting" statement for boosting holds only for the untuned model.
+
 Common setup for every number: 78 clean train trips, 5-fold CV grouped by trip, at most 1,000 points per trip, seed 0, student-test = 10 trips never used for fitting or tuning. Labels are our own alignment of the reference route.
 
 ---

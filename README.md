@@ -3,7 +3,7 @@
 Distributed map-matching and route reconstruction for UE24CS352A (Machine Learning), PES University. Noisy GPS points go in; a connected road route comes out. A classifier scores candidate road segments and an HMM with Viterbi decoding assembles the route. The API runs on one laptop and the evaluator UI on another.
 
 ## Status (18 Nov 2026)
-Pipeline, five models, Bayesian optimisation, HMM/Viterbi, the saved model, the API and a first UI are in. On student-test, Top-1 goes from 86.0% (rule baseline) to 89.1% (tuned boosting) to 93.2% (boosting + HMM); route continuity 90.4%, route overlap 0.955 (our own definitions, see [docs/05_open_questions.md](docs/05_open_questions.md)). Still open: report assembly, the two-laptop rehearsal on real hardware, and the open questions for the organisers. Details: [docs/04_todo.md](docs/04_todo.md), [docs/08_models_and_hmm.md](docs/08_models_and_hmm.md), [docs/09_error_analysis.md](docs/09_error_analysis.md).
+Pipeline, five models, Bayesian optimisation, HMM/Viterbi, the saved model, the API and a first UI are in. After the context-feature upgrade (26 features; `PATHSNAP_FEATURES=v1` restores the original 17), student-test Top-1 goes from 86.0% (rule baseline) to 90.6% (tuned boosting) to 93.3% (boosting + HMM); route continuity 90.8%, route overlap 0.958 (our own definitions, see [docs/05_open_questions.md](docs/05_open_questions.md)). The Review 1 results (89.1% / 93.15%) are kept in `results/v1/`. Still open: report assembly, the two-laptop rehearsal on real hardware, and the open questions for the organisers. Details: [docs/04_todo.md](docs/04_todo.md), [docs/08_models_and_hmm.md](docs/08_models_and_hmm.md), [docs/09_error_analysis.md](docs/09_error_analysis.md).
 
 ## Start here (read in order)
 1. [docs/01_task_summary.md](docs/01_task_summary.md): what the organisers require, rules and deliverables
@@ -74,7 +74,7 @@ python scripts/train_models.py DATA_RAW DATA_PROCESSED SUMMARY_CSV OUT_DIR PROBS
 python scripts/bayes_opt.py DATA_PROCESSED SUMMARY_CSV OUT_DIR
 python scripts/run_hmm.py DATA_RAW DATA_PROCESSED SUMMARY_CSV PROBS_DIR CACHE_DIR OUT_DIR hgb_tuned
 python scripts/export_model.py DATA_PROCESSED SUMMARY_CSV HMM_SUMMARY_CSV hgb_tuned
-python scripts/check_predict.py data/raw                      # end to end, reproduces 93.15%
+python scripts/check_predict.py data/raw                      # end to end, reproduces 93.3%
 python scripts/make_folium_map.py data/raw student_test 00000009 report/maps/trip_00000009_student_test.html
 ```
 

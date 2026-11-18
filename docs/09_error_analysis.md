@@ -32,6 +32,8 @@ Fixes with speed below 1 m/s are 7.7% of student-test fixes (8.2% of train) but 
 So trip 16 is mostly a stopped-vehicle and parallel-road case, not a data defect. This is correlation over 78 trips, not a proof.
 
 ## Route overlap (student-test, length-weighted against the reference route)
+Table below is the Review 1 run. Final (26 features, `results/route_overlap_student_test.csv`): IoU with direction counted 0.913 (classifier) and 0.958 (HMM), against the labels' 0.986; precision 0.975, recall 0.981 for the HMM.
+
 | | Classifier only | Classifier + HMM | Aligned labels (ceiling) |
 |---|---|---|---|
 | IoU, direction counted | 0.892 | 0.955 | 0.986 |

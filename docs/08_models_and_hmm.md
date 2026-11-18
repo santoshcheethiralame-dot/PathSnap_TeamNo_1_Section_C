@@ -8,7 +8,36 @@ All numbers come from the CSV files in `results/`. Labels are our own alignment 
 - Candidate-level metrics treat each (point, candidate) as is-reference vs not. Top-1 is per point.
 - Route continuity: share of consecutive distinct predicted arcs where one ends where the next starts. For reference, the aligned reference labels themselves score 93.2% on student-test (mean over trips, `results/reference_route_continuity_student_test.csv`), because sampling can skip an arc. So about 93% is the practical ceiling.
 
-## Classifier comparison (`results/model_runs.csv`)
+## FINAL results (26 features: 17 original + 9 context, `results/`)
+The Review 1 run (17 features) is kept in `results/v1/` and described further down. The context features (heading carried over stops, signed movement along each candidate arc over ±5 s and ±15 s, distance of the fixes 5 s before and after to the arc) use only fixes already in the trip file. Same split, same folds, same seed. `PATHSNAP_FEATURES=v1` restores the old feature set.
+
+| Model | CV Top-1 | CV macro F1 (std) | Student Top-1 (Review 1) | Student macro F1 | Student log loss | Train Top-1 | Fit time |
+|---|---|---|---|---|---|---|---|
+| Logistic Regression | 89.1% | 0.9179 (0.012) | **87.3%** (86.5%) | 0.909 | 0.119 | 88.5% | 1.4 s |
+| Gaussian Naive Bayes | 87.5% | 0.8325 (0.015) | **85.5%** (83.3%) | 0.823 | 0.905 | 87.1% | 0.1 s |
+| HistGradientBoosting | 90.3% | 0.9402 (0.010) | **90.3%** (89.1%) | 0.937 | 0.088 | 91.8% | 6.4 s |
+| Random Forest | 90.5% | 0.9412 (0.011) | **90.1%** (88.4%) | 0.937 | 0.083 | 96.2% | 139.9 s |
+| MLP (64, 32) | 90.5% | 0.9370 (0.012) | **90.5%** (88.6%) | 0.937 | 0.086 | 91.7% | 65.2 s |
+| HGB, Bayesian-tuned | 91.0% | 0.9415 (0.011) | **90.6%** (89.1%) | 0.938 | 0.083 | 96.7% | 18.6 s |
+
+- Bayesian search re-run on the 26 features (40 trials, 78 min): best CV Top-1 91.0% (untuned 90.3%), student-test 90.6% (untuned 90.3%). The search only saw CV, so the student-test gain (+0.3 points) is the figure to trust; it is modest. Best values in `results/bayes_best_hgb.json`.
+- Overfitting: the tuned model fits training rows harder (96.7% train vs 90.6% on unseen trips, a 6-point gap, like the forest); untuned boosting is at 91.8% vs 90.3%. Judge the tuned model on student-test, not on its training score.
+- Boosting, forest and MLP are within about 0.6 points of each other on student-test, below the fold-to-fold spread, so their order is not firm.
+
+| Student-test, tuned boosting | Review 1 | Final |
+|---|---|---|
+| Classifier only, Top-1 | 89.1% | 90.6% |
+| Classifier + HMM, Top-1 (point-weighted) | 93.15% | 93.31% |
+| Route continuity, classifier to HMM | 75.2% to 90.4% | 76.5% to 90.8% |
+| Train out-of-fold Top-1, classifier to HMM | 89.4% to 92.3% | 91.0% to 93.1% |
+| Route overlap IoU, classifier to HMM (labels ceiling 0.986) | 0.892 to 0.955 | 0.913 to 0.958 |
+| Trips improved / worsened by the HMM | 10 / 0 | 10 / 0 |
+
+Reading: the new features lift the classifier by about 1.5 points, and the HMM had already repaired much of that, so the end-to-end gain is smaller (+0.2 Top-1). Decoder settings were re-tuned on train out-of-fold probabilities only (lam 2, beta 2, gamma 0, penalty 20, unchanged). `scripts/check_predict.py` reproduces 93.3% through `predict_trip`.
+
+## Review 1 results (17 features, `results/v1/`)
+
+## Classifier comparison (`results/v1/model_runs.csv`)
 | Model | Family | CV Top-1 | CV macro F1 (std) | Student Top-1 | Student macro F1 | Student log loss | Route continuity | Fit time | Inference |
 |---|---|---|---|---|---|---|---|---|---|
 | nearest + heading rule | rule baseline | 87.3% (train mean) | n/a | 86.0% | n/a | n/a | n/a | n/a | n/a |

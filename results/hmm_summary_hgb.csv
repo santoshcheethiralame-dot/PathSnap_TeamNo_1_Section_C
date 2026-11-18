@@ -1,2 +1,2 @@
 model,lam,beta,gamma,penalty,train_oof_top1_classifier,train_oof_top1_hmm,student_top1_classifier,student_top1_hmm,student_route_continuity_classifier,student_route_continuity_hmm,student_trips_hmm_better,student_trips_hmm_worse
-hgb,1.0,3.0,0.0,20.0,0.89131,0.92133,0.89137,0.9277,0.74532,0.90885,10,0
+hgb,2.0,3.0,0.0,20.0,0.90318,0.92715,0.90327,0.92969,0.73547,0.90751,10,0

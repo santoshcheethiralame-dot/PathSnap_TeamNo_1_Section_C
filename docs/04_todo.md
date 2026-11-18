@@ -20,6 +20,7 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 - [x] B5. Final model choice with written reasoning: tuned HGB + HMM (`08_models_and_hmm.md`). The student must still write their own justification in the report · S
 - [x] B6. Optuna Bayesian optimisation: 40 trials, CV Top-1 89.2% to 89.5%, student-test unchanged (`results/bayes_*`) · S
 - [x] B7. Final model and config saved in `models/` (model.joblib 1.4 MB, config.json; no scaler needed for trees) · S
+- [x] B8. Context features (26 total) and full regeneration: student-test Top-1 classifier 89.1% to 90.6%, with HMM 93.15% to 93.3%; Bayesian search re-run (CV 91.0%); Review 1 results kept in `results/v1/` (`08_models_and_hmm.md`, top section) · S
 
 ## Stream C · HMM and Viterbi (Santosh)
 - [x] C1. Per-trip network graph, sparse Dijkstra with cutoff (`hmm.py`)
@@ -28,7 +29,7 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 - [x] C4. Decoder parameters tuned on train out-of-fold probabilities (`results/hmm_grid_*.csv`)
 - [x] C5. Classifier-only vs classifier+HMM: student-test 89.1% to 93.2% Top-1, 75.2% to 90.4% continuity. Failure cases: HMM worse on 1 of 78 train trips (trip 72), see `08_models_and_hmm.md`. Trip 16 and the error categories are analysed in `09_error_analysis.md`
 - [x] C6. Metrics module (`metrics.py`), including length-weighted route overlap (`results/route_overlap_student_test.csv`, `09_error_analysis.md`)
-- [x] C7. Classifier + HMM wired into `predict_trip`; end-to-end check reproduces 93.15% (`scripts/check_predict.py`). Sharath can now build the API on it
+- [x] C7. Classifier + HMM wired into `predict_trip`; end-to-end check reproduces 93.3% with the final model (`scripts/check_predict.py`). Sharath can now build the API on it
 
 ## Stream D · API, UI, maps, report
 - [x] D1. FastAPI app: `GET /trips`, `POST /predict`, request logging · **Sh**. Trips folder now set by `PATHSNAP_TRIPS_DIR`, so the evaluator folder needs no code change

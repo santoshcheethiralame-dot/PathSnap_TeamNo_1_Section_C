@@ -13,3 +13,5 @@ Made by `scripts/make_review1_figures.py` from `results/` and the raw train/stud
 | 7 What the numbers mean | 14_overfitting, 15_calibration, 16_error_breakdown, 18_confusion_matrices |
 
 `report/PathSnap_Review1_handout.pdf` is a 3-page summary built by `scripts/make_review1_report.py`.
+
+Note: these figures and the handout use the Review 1 run (17 features). Their source CSVs are in `results/v1/`; `results/` holds the final run.

@@ -1,12 +1,12 @@
 {
   "model": "hgb_tuned",
   "model_config": {
-    "learning_rate": 0.024017432847009614,
-    "max_leaf_nodes": 103,
-    "min_samples_leaf": 19,
-    "l2_regularization": 0.017263869042304814,
-    "max_bins": 255,
-    "max_iter": 264,
+    "learning_rate": 0.12430860918455536,
+    "max_leaf_nodes": 53,
+    "min_samples_leaf": 24,
+    "l2_regularization": 0.32753170835457635,
+    "max_bins": 128,
+    "max_iter": 464,
     "early_stopping": true,
     "validation_fraction": 0.1,
     "n_iter_no_change": 15,
@@ -29,7 +29,16 @@
     "dist_gap_best",
     "deg_u",
     "deg_v",
-    "twin_added"
+    "twin_added",
+    "cos_head_ff",
+    "head_filled",
+    "head_age_s",
+    "along_b5",
+    "along_f5",
+    "along_b15",
+    "along_f15",
+    "d_b5",
+    "d_f5"
   ],
   "seed": 0,
   "hmm": {
@@ -44,5 +53,5 @@
   },
   "max_points_per_trip": 1000,
   "trained_on": "78 non-quarantined train trips, 457405 candidate rows",
-  "fit_seconds": 12.4
+  "fit_seconds": 11.9
 }

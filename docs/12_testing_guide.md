@@ -31,20 +31,20 @@ curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -
 ```
 (In PowerShell use `Invoke-RestMethod -Method Post -Uri http://localhost:8000/predict -ContentType application/json -Body '{"trip_id":"00000040"}'`.)
 
-Expected `/predict` results for the ten student-test trips (tuned boosting + HMM; use these to check Sharath's setup):
+Expected `/predict` results for the ten student-test trips (tuned boosting with 26 features + HMM; pooled Top-1 0.933, mean continuity 0.908; use these to check Sharath's setup):
 
 | Trip | Top-1 | Route continuity |
 |---|---|---|
-| 00000000 | 0.963 | 0.939 |
+| 00000000 | 0.961 | 0.934 |
 | 00000007 | 0.993 | 0.992 |
-| 00000009 | 0.887 | 0.855 |
-| 00000040 | 0.955 | 0.957 |
-| 00000052 | 0.992 | 0.877 |
-| 00000056 | 0.945 | 0.884 |
-| 00000065 | 0.902 | 0.909 |
-| 00000076 | 0.956 | 0.885 |
-| 00000077 | 0.864 | 0.894 |
-| 00000091 | 0.928 | 0.849 |
+| 00000009 | 0.894 | 0.854 |
+| 00000040 | 0.957 | 0.962 |
+| 00000052 | 0.985 | 0.877 |
+| 00000056 | 0.953 | 0.888 |
+| 00000065 | 0.930 | 0.920 |
+| 00000076 | 0.956 | 0.881 |
+| 00000077 | 0.856 | 0.916 |
+| 00000091 | 0.926 | 0.852 |
 
 Prediction coverage is 1.0 on all ten. The first request after start is slower (model and graph load). **Warm up by calling each trip once before the demo.** Every request appears in the console and in `api/logs/requests.log` with trip id, method, route size, Top-1, continuity and time.
 
