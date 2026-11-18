@@ -53,3 +53,24 @@ def predicted_arcs(df, prob, n_points):
     out = np.full(n_points, -1, dtype=np.int64)
     out[d.loc[best, "p"].to_numpy()] = d.loc[best, "a"].to_numpy()
     return out
+
+
+def route_overlap(trip, pred_arcs, ref_arcs, ignore_direction=False):
+    """Length-weighted overlap between a predicted route and the reference
+    route, both given as arc ids. Precision: share of the predicted length that
+    lies on the reference. Recall: share of the reference length that was
+    predicted. IoU: shared length over combined length. With ignore_direction
+    an arc and its opposite twin count as the same road."""
+    def keyset(arcs):
+        a = np.unique(np.asarray(arcs, dtype=np.int64))
+        a = a[a >= 0]
+        if ignore_direction:
+            twin = trip.reverse_arc[a]
+            a = np.unique(np.where((twin >= 0) & (twin < a), twin, a))
+        return a
+    p, r = keyset(pred_arcs), keyset(ref_arcs)
+    both = np.intersect1d(p, r)
+    lp, lr, lb = trip.arc_len[p].sum(), trip.arc_len[r].sum(), trip.arc_len[both].sum()
+    union = lp + lr - lb
+    return dict(precision=float(lb / lp) if lp else float("nan"), recall=float(lb / lr) if lr else float("nan"),
+                iou=float(lb / union) if union else float("nan"))

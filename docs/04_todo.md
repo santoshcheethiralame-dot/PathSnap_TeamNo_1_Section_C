@@ -26,8 +26,8 @@ Status as of 18 Nov 2026. Owners are set in [06_work_split.md](06_work_split.md)
 - [x] C2. Emissions, route-distance transitions, gap reset
 - [x] C3. Log-space Viterbi, plus connecting-arc route fill for the map polyline (`route_nodes`)
 - [x] C4. Decoder parameters tuned on train out-of-fold probabilities (`results/hmm_grid_*.csv`)
-- [x] C5. Classifier-only vs classifier+HMM: student-test 89.1% to 93.2% Top-1, 75.2% to 90.4% continuity. Failure cases: HMM worse on 1 of 78 train trips (trip 72), see `08_models_and_hmm.md`. The cause of trip 16's low accuracy is not analysed
-- [x] C6. Metrics module (`metrics.py`). Route overlap metric not done
+- [x] C5. Classifier-only vs classifier+HMM: student-test 89.1% to 93.2% Top-1, 75.2% to 90.4% continuity. Failure cases: HMM worse on 1 of 78 train trips (trip 72), see `08_models_and_hmm.md`. Trip 16 and the error categories are analysed in `09_error_analysis.md`
+- [x] C6. Metrics module (`metrics.py`), including length-weighted route overlap (`results/route_overlap_student_test.csv`, `09_error_analysis.md`)
 - [x] C7. Classifier + HMM wired into `predict_trip`; end-to-end check reproduces 93.15% (`scripts/check_predict.py`). Sharath can now build the API on it
 
 ## Stream D · API, UI, maps, report
