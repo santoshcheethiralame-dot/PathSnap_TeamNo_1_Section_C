@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathSnap - Route Reconstruction</title>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #263445;
+        }
+
+        header {
+            background: #173b63;
+            color: white;
+            padding: 18px 30px;
+        }
+
+        header h2 {
+            font-size: 23px;
+        }
+
+        header p {
+            margin-top: 5px;
+            color: #d5e2f0;
+            font-size: 13px;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        .controls, .map-section, .metrics {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e1e6ed;
+        }
+
+        .controls h3, .map-section h3, .metrics h3 {
+            margin-bottom: 15px;
+            font-size: 17px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input, select {
+            padding: 11px;
+            border: 1px solid #ccd4df;
+            border-radius: 5px;
+            min-width: 180px;
+            flex: 1;
+        }
+
+        button {
+            padding: 11px 17px;
+            border: none;
+            border-radius: 5px;
+            background: #1769aa;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #105486;
+        }
+
+        #map {
+            height: 430px;
+            width: 100%;
+            border-radius: 6px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 22px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            font-size: 13px;
+        }
+
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .observed {
+            background: #e39b24;
+        }
+
+        .predicted {
+            background: #1769aa;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: #f4f7fb;
+            padding: 17px;
+            border-radius: 6px;
+            border: 1px solid #e4eaf1;
+        }
+
+        .metric-card p {
+            color: #68788b;
+            font-size: 13px;
+            margin-bottom: 9px;
+        }
+
+        .metric-card h2 {
+            font-size: 22px;
+            color: #173b63;
+        }
+
+        #status {
+            margin-top: 14px;
+            color: #596b7e;
+            font-size: 13px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 18px;
+            color: #718096;
+            font-size: 12px;
+        }
+
+        @media (max-width: 750px) {
+            .metric-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #map {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>PathSnap</h2>
+    <p>GPS Route Reconstruction and Map Matching</p>
+</header>
+
+<div class="container">
+
+    <section class="controls">
+        <h3>Trip Selection</h3>
+
+        <div class="form-row">
+            <input type="text" id="apiUrl"
+                   value="http://127.0.0.1:8000"
+                   placeholder="API Address">
+
+            <button onclick="loadTrips()">Load Trips</button>
+
+            <select id="tripSelect">
+                <option value="">Select a trip</option>
+            </select>
+
+            <button onclick="predictRoute()">Reconstruct Route</button>
+        </div>
+
+        <p id="status">Configure the API address and load available trips.</p>
+    </section>
+
+    <section class="map-section">
+        <h3>Route Map</h3>
+
+        <div id="map"></div>
+
+        <div class="legend">
+            <span><i class="dot observed"></i> Observed GPS Points</span>
+            <span><i class="dot predicted"></i> Predicted Route</span>
+        </div>
+    </section>
+
+    <section class="metrics">
+        <h3>Prediction Results</h3>
+
+        <div class="metric-grid">
+
+            <div class="metric-card">
+                <p>Top-1 Accuracy</p>
+                <h2 id="accuracy">—</h2>
+            </div>
+
+            <div class="metric-card">
+                <p>Prediction Coverage</p>
+                <h2 id="coverage">—</h2>
+            </div>
+
+            <div class="metric-card">
+                <p>Route Continuity</p>
+                <h2 id="continuity">—</h2>
+            </div>
+
+            <div class="metric-card">
+                <p>Predicted Route Arcs</p>
+                <h2 id="arcs">—</h2>
+            </div>
+
+        </div>
+    </section>
+
+</div>
+
+<footer>
+    PathSnap | GPS Route Reconstruction Project
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    const map = L.map('map', { maxZoom: 19 }).setView([12.9716, 77.5946], 12);
+
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri', maxZoom: 19
+    }).addTo(map);
+
+    let observedLayer = null;
+    let predictedLayer = null;
+
+    function getApiUrl() {
+        return document.getElementById('apiUrl').value.trim().replace(/\/+$/, '');
+    }
+
+    function setStatus(message) {
+        document.getElementById('status').textContent = message;
+    }
+
+    function resetMetrics() {
+        document.getElementById('accuracy').textContent = '—';
+        document.getElementById('coverage').textContent = '—';
+        document.getElementById('continuity').textContent = '—';
+        document.getElementById('arcs').textContent = '—';
+    }
+
+    function toLatLng(points) {
+        return (points || []).map(point => [point[1], point[0]]);
+    }
+
+    async function loadTrips() {
+        const select = document.getElementById('tripSelect');
+        const api = getApiUrl();
+
+        if (!api) {
+            setStatus('Please enter the API address.');
+            return;
+        }
+
+        setStatus('Loading trips...');
+
+        try {
+            const response = await fetch(api + '/trips');
+
+            if (!response.ok) {
+                throw new Error('Unable to load trips.');
+            }
+
+            const data = await response.json();
+            const trips = Array.isArray(data) ? data : (data.trips || []);
+
+            select.innerHTML = '<option value="">Select a trip</option>';
+
+            trips.forEach(trip => {
+                const id = typeof trip === 'string' ? trip : trip.trip_id;
+                if (!id) return;
+
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = id;
+                select.appendChild(option);
+            });
+
+            setStatus(trips.length + ' trips loaded successfully.');
+
+        } catch (error) {
+            setStatus('Could not connect to API. Backend setup is still pending.');
+        }
+    }
+
+    async function predictRoute() {
+        const tripId = document.getElementById('tripSelect').value;
+        const api = getApiUrl();
+
+        if (!tripId) {
+            setStatus('Please select a trip first.');
+            return;
+        }
+
+        setStatus('Reconstructing route...');
+
+        try {
+            const response = await fetch(api + '/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ trip_id: tripId })
+            });
+
+            if (!response.ok) {
+                throw new Error('Prediction failed.');
+            }
+
+            const data = await response.json();
+
+            if (observedLayer) map.removeLayer(observedLayer);
+            if (predictedLayer) map.removeLayer(predictedLayer);
+
+            const observed = toLatLng(data.fix_lonlat);
+            const predicted = toLatLng(data.route_lonlat);
+
+            if (observed.length > 0) {
+                observedLayer = L.polyline(observed, {
+                    color: '#e39b24',
+                    weight: 4
+                }).addTo(map);
+            }
+
+            if (predicted.length > 0) {
+                predictedLayer = L.polyline(predicted, {
+                    color: '#1769aa',
+                    weight: 5
+                }).addTo(map);
+            }
+
+            const allPoints = observed.concat(predicted);
+
+            if (allPoints.length > 0) {
+                map.fitBounds(allPoints);
+            }
+
+            // Read metrics directly from the API response
+
+            document.getElementById('accuracy').textContent =
+                data.top1_accuracy != null ? (data.top1_accuracy * 100).toFixed(2) + '%' : '—';
+
+            document.getElementById('coverage').textContent =
+                data.prediction_coverage != null ? (data.prediction_coverage * 100).toFixed(2) + '%' : '—';
+
+            document.getElementById('continuity').textContent =
+                data.route_continuity != null ? (data.route_continuity * 100).toFixed(2) + '%' : '—';
+
+            document.getElementById('arcs').textContent =
+                data.predicted_route_arcs ?? '—';
+
+            setStatus('Route reconstruction completed.');
+
+        } catch (error) {
+            setStatus('Prediction could not be completed. Check the backend connection.');
+        }
+    }
+</script>
+
+</body>
+</html>
